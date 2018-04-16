@@ -35,26 +35,6 @@ class PsdParser:
             m_x1 = 0
             m_y1 = 0
 
-            if not os.path.exists(save_path):
-                try:
-                    layerPIL = layer.as_PIL()
-                    if layer.name.find("_light") > 0:
-                        layerPIL = PsdParser.remove_black_from_light_layer(layerPIL)
-                    layerPIL, m_x1, m_y1 = PsdParser.trim(layerPIL)
-                    if layerPIL is not None:
-                        try:
-                            layerPIL.save(save_path)
-                        except RuntimeError:
-                            print('RuntimeError: Saving layer png failed', save_path)
-                        except TypeError:
-                            print('TypeError: Saving layer png failed', save_path)
-                        except NameError:
-                            print('NameError: Saving layer png failed', save_path)
-                        except ValueError:
-                            print('ValueError: Saving layer png failed', save_path)
-                except ValueError:
-                    print('RuntimeError: Parsing layer failed', layer.name)
-
             layer_info = PsdLayer(layer.bbox.width, layer.bbox.height,
                                   layer.bbox.x1 + m_x1, layer.bbox.y1 + m_y1, layer.bbox.x2, layer.bbox.y2,
                                   layer.name, save_path)

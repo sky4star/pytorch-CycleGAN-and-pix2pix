@@ -1,0 +1,6 @@
+--dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0
+
+
+
+
+--dataroot /users/sky4star/muse_test_data/train_data --name muse --input_nc 5 --output_nc 3 --loadSize 560 --fineSize 500 --model muse --which_model_netG unet_256 --which_direction AtoB --lambda_A 100 --dataset_mode aligned --gpu_ids -1 --no_lsgan --norm batch --pool_size 0

@@ -13,6 +13,10 @@ def create_model(opt):
         assert(opt.dataset_mode == 'single')
         from .test_model import TestModel
         model = TestModel()
+    elif opt.model == 'muse':
+        assert(opt.dataset_mode == 'aligned')
+        from .muse_model import MuseModel
+        model = MuseModel()
     else:
         raise NotImplementedError('model [%s] not implemented.' % opt.model)
     model.initialize(opt)

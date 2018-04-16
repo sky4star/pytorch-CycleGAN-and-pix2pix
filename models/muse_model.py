@@ -1,15 +1,16 @@
+import numpy
 import torch
 from collections import OrderedDict
 from torch.autograd import Variable
 import util.util as util
+from models import networks
+from models.base_model import BaseModel
 from util.image_pool import ImagePool
-from .base_model import BaseModel
-from . import networks
 
 
-class Pix2PixModel(BaseModel):
+class MuseModel(BaseModel):
     def name(self):
-        return 'Pix2PixModel'
+        return 'MuseModel'
 
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
@@ -62,6 +63,32 @@ class Pix2PixModel(BaseModel):
         self.input_A = input_A
         self.input_B = input_B
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
+
+        # 得到变换尺寸
+        # FIXME 目前只支持一个一个训练
+        if len(self.image_paths) > 1:
+            raise BaseException("set_input一次只支持一张图片作为输入")
+        width_height = self.image_paths[0].split('.')[0].split('_')[-1].split('x')
+        width = int(width_height[0])
+        height = int(width_height[1])
+
+        if width > self.opt.fineSize:
+            height = int(self.opt.fineSize / width * height)
+            width = self.opt.fineSize
+        elif height > self.opt.fineSize:
+            width = int(self.opt.fineSize / height * width)
+            height = self.opt.fineSize
+
+        width_ratio = width / self.opt.fineSize
+        height_ratio = height / self.opt.fineSize
+
+        # 创建一个三维数组，针对每个像素点，添加横纵两个坐标系
+        width_tensor = torch.from_numpy(numpy.full((1, 1, self.opt.fineSize, self.opt.fineSize), width_ratio, dtype=numpy.float32))
+        height_tensor = torch.from_numpy(numpy.full((1, 1, self.opt.fineSize, self.opt.fineSize), height_ratio, dtype=numpy.float32))
+
+        # 只将需求写入input中，output(real_b)不变化
+        self.input_A = torch.cat([self.input_A, width_tensor], dim=1)
+        self.input_A = torch.cat([self.input_A, height_tensor], dim=1)
 
 
     def forward(self):
@@ -128,7 +155,7 @@ class Pix2PixModel(BaseModel):
                             ])
 
     def get_current_visuals(self):
-        real_A = util.tensor2im(self.real_A.data)
+        real_A = util.tensor2im(self.real_A.data[:, 0:3, :, :])
         fake_B = util.tensor2im(self.fake_B.data)
         real_B = util.tensor2im(self.real_B.data)
         return OrderedDict([('real_A', real_A), ('fake_B', fake_B), ('real_B', real_B)])

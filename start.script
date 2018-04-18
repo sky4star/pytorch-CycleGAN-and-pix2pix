@@ -3,4 +3,14 @@
 
 
 
---dataroot /users/sky4star/muse_test_data/train_data --name muse --input_nc 5 --output_nc 3 --loadSize 560 --fineSize 500 --model muse --which_model_netG unet_256 --which_direction AtoB --lambda_A 100 --dataset_mode aligned --gpu_ids -1 --no_lsgan --norm batch --pool_size 0
+--dataroot ~/muse_test_data/train_data --name muse --input_nc 5 --output_nc 3 --loadSize 286 --fineSize 256 --model muse --which_model_netG unet_128 --which_direction AtoB --lambda_A 100 --dataset_mode aligned --gpu_ids -1 --no_lsgan --norm batch --pool_size 0 
+
+
+
+nohup ai-test-env/bin/python3 -u zy2/src/server/nonblockserver.py 8 &> /data/http.log &
+
+nohup ~/muse-test-env/bin/python3 muse/train.py --dataroot ~/muse_test_data/train_data --name muse --input_nc 5 --output_nc 3 --loadSize 286 --fineSize 256 --model muse --which_model_netG unet_128 --which_direction AtoB --lambda_A 100 --dataset_mode aligned --gpu_ids 3 --no_lsgan --norm batch --pool_size 0 --display_id 0 &> muse.log &
+
+
+
+nohup ~/muse-test-env/bin/python3 -m muse/visdom.server &> /data/visdom.log &

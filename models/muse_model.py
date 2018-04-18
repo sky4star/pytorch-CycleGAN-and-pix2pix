@@ -68,7 +68,7 @@ class MuseModel(BaseModel):
         # FIXME 目前只支持一个一个训练
         if len(self.image_paths) > 1:
             raise BaseException("set_input一次只支持一张图片作为输入")
-        width_height = self.image_paths[0].split('.')[0].split('_')[-1].split('x')
+        width_height = self.image_paths[0].split('.')[-2].split('_')[-1].split('x')
         width = int(width_height[0])
         height = int(width_height[1])
 

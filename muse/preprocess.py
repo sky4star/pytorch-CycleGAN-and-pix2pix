@@ -33,7 +33,7 @@ def psd2png(psd_path, save_dir):
 
 # 特殊文件目录：佳佳
 def batch_preprocess():
-    max_size = (512, 512)
+    max_size = (256, 256)
     save_folder = 'train_data/train'
     for artist in os.listdir(C.DATA_ROOT_PATH):
         if artist == '.DS_Store':

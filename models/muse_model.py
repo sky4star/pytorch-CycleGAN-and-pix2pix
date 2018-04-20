@@ -55,13 +55,8 @@ class MuseModel(BaseModel):
 
     def set_input(self, input):
         AtoB = self.opt.which_direction == 'AtoB'
-        input_A = input['A' if AtoB else 'B']
-        input_B = input['B' if AtoB else 'A']
-        if len(self.gpu_ids) > 0:
-            input_A = input_A.cuda(self.gpu_ids[0], async=True)
-            input_B = input_B.cuda(self.gpu_ids[0], async=True)
-        self.input_A = input_A
-        self.input_B = input_B
+        self.input_A = input['A' if AtoB else 'B']
+        self.input_B = input['B' if AtoB else 'A']
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
 
         # 得到变换尺寸
@@ -89,6 +84,10 @@ class MuseModel(BaseModel):
         # 只将需求写入input中，output(real_b)不变化
         self.input_A = torch.cat([self.input_A, width_tensor], dim=1)
         self.input_A = torch.cat([self.input_A, height_tensor], dim=1)
+
+        if len(self.gpu_ids) > 0:
+            self.input_A = self.input_A.cuda(self.gpu_ids[0], async=True)
+            self.input_B = self.input_B.cuda(self.gpu_ids[0], async=True)
 
 
     def forward(self):

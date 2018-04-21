@@ -55,36 +55,49 @@ class MuseModel(BaseModel):
 
     def set_input(self, input):
         AtoB = self.opt.which_direction == 'AtoB'
-        self.input_A = input['A' if AtoB else 'B']
-        self.input_B = input['B' if AtoB else 'A']
-        self.image_paths = input['A_paths' if AtoB else 'B_paths']
+        input_A = input['A' if AtoB else 'B']
+        input_B = input['B' if AtoB else 'A']
+        image_paths = input['A_paths' if AtoB else 'B_paths']
 
         # 得到变换尺寸
-        # FIXME 目前只支持一个一个训练
-        if len(self.image_paths) > 1:
-            raise BaseException("set_input一次只支持一张图片作为输入")
-        width_height = self.image_paths[0].split('.')[-2].split('_')[-1].split('x')
-        width = int(width_height[0])
-        height = int(width_height[1])
+        batch_size = len(input_A)
+        tensor_list_A = []
+        for i in range(batch_size):
+            # 遍历每个input，添加必要的信息
+            sub_input_A = input_A[i].clone()
+            image_path = image_paths[i]
 
-        if width > self.opt.fineSize:
-            height = int(self.opt.fineSize / width * height)
-            width = self.opt.fineSize
-        elif height > self.opt.fineSize:
-            width = int(self.opt.fineSize / height * width)
-            height = self.opt.fineSize
+            width_height = image_path.split('.')[-2].split('_')[-1].split('x')
+            width = int(width_height[0])
+            height = int(width_height[1])
 
-        width_ratio = width / self.opt.fineSize
-        height_ratio = height / self.opt.fineSize
+            if width > self.opt.fineSize:
+                height = int(self.opt.fineSize / width * height)
+                width = self.opt.fineSize
+            elif height > self.opt.fineSize:
+                width = int(self.opt.fineSize / height * width)
+                height = self.opt.fineSize
 
-        # 创建一个三维数组，针对每个像素点，添加横纵两个坐标系
-        width_tensor = torch.from_numpy(numpy.full((1, 1, self.opt.fineSize, self.opt.fineSize), width_ratio, dtype=numpy.float32))
-        height_tensor = torch.from_numpy(numpy.full((1, 1, self.opt.fineSize, self.opt.fineSize), height_ratio, dtype=numpy.float32))
+            width_ratio = width / self.opt.fineSize
+            height_ratio = height / self.opt.fineSize
 
-        # 只将需求写入input中，output(real_b)不变化
-        self.input_A = torch.cat([self.input_A, width_tensor], dim=1)
-        self.input_A = torch.cat([self.input_A, height_tensor], dim=1)
+            # 创建一个三维数组，针对每个像素点，添加横纵两个坐标系
+            width_tensor = torch.from_numpy(
+                numpy.full((1, self.opt.fineSize, self.opt.fineSize), width_ratio, dtype=numpy.float32))
+            height_tensor = torch.from_numpy(
+                numpy.full((1, self.opt.fineSize, self.opt.fineSize), height_ratio, dtype=numpy.float32))
 
+            # 只将需求写入input中，output(real_b)不变化
+            sub_input_A = torch.cat([sub_input_A, width_tensor], dim=0)
+            sub_input_A = torch.cat([sub_input_A, height_tensor], dim=0)
+
+            tensor_list_A.append(sub_input_A)
+
+        self.input_A = torch.stack(tensor_list_A, 0)
+        self.input_B = input_B
+        self.image_paths = image_paths
+
+        # 为什么只放入第一个GPU
         if len(self.gpu_ids) > 0:
             self.input_A = self.input_A.cuda(self.gpu_ids[0], async=True)
             self.input_B = self.input_B.cuda(self.gpu_ids[0], async=True)

@@ -17,3 +17,7 @@ nohup ~/muse-test-env/bin/python3 -m muse/visdom.server &> /data/visdom.log &
 
 
 nohup ~/muse-test-env/bin/python3 muse/train.py --dataroot ~/test_data/train_data --name muse --input_nc 5 --output_nc 3 --loadSize 286 --fineSize 256 --model muse --which_model_netG unet_128 --which_direction AtoB --lambda_A 100 --dataset_mode aligned --gpu_ids 0,1,2,3 --no_lsgan --norm batch --pool_size 0 --display_id 0 &> run_muse.log &
+
+
+
+nohup ~/muse-test-env/bin/python3 muse/train.py --dataroot ~/test_data/train_data --name muse2 --input_nc 5 --output_nc 3 --loadSize 286 --fineSize 256 --model muse --which_model_netG unet_128 --which_direction AtoB --lambda_A 100 --dataset_mode aligned --gpu_ids 0,1,2,3 --no_lsgan --norm batch --pool_size 50 --batchSize 32 --display_id 0 --save_epoch_freq 50  --niter 2000 --niter_decay 200 --continue_train &> run_muse.log &
